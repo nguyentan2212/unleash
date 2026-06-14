@@ -2,6 +2,7 @@ import {
     DefaultStrategyUpdatedEvent,
     type IAuditUser,
     type IEnvironment,
+    type IEnvironmentCreate,
     type IEnvironmentStore,
     type IFeatureEnvironmentStore,
     type IFeatureStrategiesStore,
@@ -25,6 +26,7 @@ import type { IProjectStore } from '../../features/project/project-store-type.js
 import type { IFlagResolver } from '../../types/experimental.js';
 import type { CreateFeatureStrategySchema } from '../../openapi/index.js';
 import type EventService from '../events/event-service.js';
+import { nameSchema } from '../../schema/feature-schema.js';
 
 export default class EnvironmentService {
     private logger: Logger;
@@ -85,6 +87,39 @@ export default class EnvironmentService {
 
     async exists(name: string): Promise<boolean> {
         return this.environmentStore.exists(name);
+    }
+
+    async validateName(name: string): Promise<void> {
+        await nameSchema.validateAsync({ name });
+
+        const exists = await this.exists(name);
+        if (exists) {
+            throw new NameExistsError(
+                'An environment with that name already exists.',
+            );
+        }
+    }
+
+    async createEnvironment(input: IEnvironmentCreate): Promise<IEnvironment> {
+        await this.validateName(input.name);
+
+        const maxSortOrder = await this.environmentStore.getMaxSortOrder();
+        const environment: IEnvironmentCreate = {
+            ...input,
+            enabled: input.enabled ?? true,
+            sortOrder: input.sortOrder ?? maxSortOrder + 1,
+        };
+
+        try {
+            return await this.environmentStore.create(environment);
+        } catch (e) {
+            if (e.code === UNIQUE_CONSTRAINT_VIOLATION) {
+                throw new NameExistsError(
+                    'An environment with that name already exists.',
+                );
+            }
+            throw e;
+        }
     }
 
     async getProjectEnvironments(
