@@ -6,8 +6,13 @@ import {
     type IProjectParam,
     type IUnleashConfig,
     NONE,
+    CREATE_PROJECT,
+    DELETE_PROJECT,
     serializeDates,
+    type CreateProject,
+    type ProjectCreated
 } from '../../types/index.js';
+import { extractAuditInfo } from '../../util/extract-user.js';
 import ProjectFeaturesController from '../feature-toggle/feature-toggle-controller.js';
 import ProjectEnvironmentsController from '../project-environments/project-environments-controller.js';
 import ProjectHealthReport from '../../routes/admin-api/project/health-report.js';
@@ -92,6 +97,21 @@ export default class ProjectController extends Controller {
                     },
                 }),
             ],
+        });
+
+                this.route({
+            path: '',
+            method: 'post',
+            handler: this.createProject,
+            permission: CREATE_PROJECT,
+        });
+
+        this.route({
+            path: '/:projectId',
+            method: 'delete',
+            handler: this.deleteProject,
+            permission: DELETE_PROJECT,
+            acceptAnyContentType: true,
         });
 
         this.route({
@@ -223,9 +243,7 @@ export default class ProjectController extends Controller {
     ): Promise<void> {
         const { user } = req;
         const projects = await this.projectService.getProjects(
-            {
-                id: 'default',
-            },
+            undefined,
             user.id,
         );
 
@@ -238,6 +256,31 @@ export default class ProjectController extends Controller {
             projectsSchema.$id,
             { version: 1, projects: serializeDates(projectsWithOwners) },
         );
+    }
+
+    async createProject(
+        req: IAuthRequest<unknown, unknown, CreateProject>,
+        res: Response<ProjectCreated>,
+    ): Promise<void> {
+        const { user } = req;
+        const auditUser = extractAuditInfo(req);
+        const project = await this.projectService.createProject(
+            req.body,
+            user,
+            auditUser,
+        );
+        res.status(201).json(serializeDates(project));
+    }
+
+    async deleteProject(
+        req: IAuthRequest<IProjectParam>,
+        res: Response,
+    ): Promise<void> {
+        const { projectId } = req.params;
+        const { user } = req;
+        const auditUser = extractAuditInfo(req);
+        await this.projectService.deleteProject(projectId, user, auditUser);
+        res.status(200).end();
     }
 
     async getProjectOverview(
