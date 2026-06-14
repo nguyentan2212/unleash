@@ -47,6 +47,7 @@ export * from './create-api-token-schema.js';
 export * from './create-application-schema.js';
 export * from './create-context-field-schema.js';
 export * from './create-dependent-feature-schema.js';
+export * from './create-environment-schema.js';
 export * from './create-feature-naming-pattern-schema.js';
 export * from './create-feature-schema.js';
 export * from './create-feature-strategy-schema.js';
