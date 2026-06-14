@@ -61,6 +61,41 @@ test('Can list all existing environments', async () => {
     });
 });
 
+test('Can validate and create a new environment', async () => {
+    const envName = 'staging';
+
+    await app.request
+        .post('/api/admin/environments/validate')
+        .send({ name: envName })
+        .expect(204);
+
+    await app.request
+        .post('/api/admin/environments')
+        .send({
+            name: envName,
+            type: 'preproduction',
+        })
+        .expect(201)
+        .expect('Content-Type', /json/)
+        .expect((res) => {
+            expect(res.body).toMatchObject({
+                name: envName,
+                type: 'preproduction',
+                enabled: true,
+                protected: false,
+                requiredApprovals: null,
+            });
+            expect(res.body.sortOrder).toBeGreaterThan(3);
+        });
+});
+
+test('Can not validate an existing environment name', async () => {
+    await app.request
+        .post('/api/admin/environments/validate')
+        .send({ name: DEFAULT_ENV })
+        .expect(409);
+});
+
 test('Can update sort order', async () => {
     const envName = 'update-sort-order';
     await db.stores.environmentStore.create({
