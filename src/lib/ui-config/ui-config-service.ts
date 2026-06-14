@@ -128,6 +128,7 @@ export class UiConfigService {
             frontendApiOrigins: frontendSettings.frontendApiOrigins,
             versionInfo: await this.versionService.getVersionInfo(),
             prometheusAPIAvailable: this.config.prometheusApi !== undefined,
+            isOss: this.config.isOss,
             impactMetrics,
             resourceLimits:
                 await this.resourceLimitsService.getResourceLimits(),
