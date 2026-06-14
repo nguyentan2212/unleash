@@ -71,8 +71,9 @@ const ProjectEnvironmentList = () => {
         useState<IProjectEnvironment>();
     const [hideDialog, setHideDialog] = useState(false);
     const [globalFilter, setGlobalFilter] = useState('');
-    const { isOss } = useUiConfig();
-
+    const { uiConfig } = useUiConfig();
+    const isOss = uiConfig.isOss ?? true;
+    
     const projectEnvironments = useMemo<IProjectEnvironment[]>(
         () =>
             environments.map((environment) => ({
@@ -155,7 +156,7 @@ const ProjectEnvironmentList = () => {
 
     const envIsDisabled = (env: IProjectEnvironment) => {
         return (
-            (isOss() && env.name === 'default') ||
+            (isOss && env.name === 'default') ||
             (env.projectVisible && onlyOneEnvEnabled())
         );
     };
@@ -247,7 +248,7 @@ const ProjectEnvironmentList = () => {
                         initialValue={globalFilter}
                         onChange={(value) => setGlobalFilter(value)}
                     />
-                    {!isOss() ? (
+                    {!isOss ? (
                         <>
                             <PageHeader.Divider />
                             <Link component={RouterLink} to='/environments'>
@@ -323,7 +324,7 @@ const ProjectEnvironmentList = () => {
                         />
                     }
                 />
-                {isOss() ? <UpgradeMoreEnvironments /> : null}
+                {isOss ? <UpgradeMoreEnvironments /> : null}
                 <EnvironmentHideDialog
                     environment={selectedEnvironment}
                     open={hideDialog}
