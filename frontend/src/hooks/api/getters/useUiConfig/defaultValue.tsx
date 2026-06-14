@@ -28,6 +28,7 @@ export const defaultValue: IUiConfig = {
         },
     ],
     prometheusAPIAvailable: false,
+    isOss: true,
     resourceLimits: {
         segmentValues: 1000,
         strategySegments: 5,
