@@ -6,7 +6,14 @@ import type EnvironmentService from '../project-environments/environment-service
 import { ADMIN, NONE } from '../../types/permissions.js';
 import type { OpenApiService } from '../../services/openapi-service.js';
 import { createRequestSchema } from '../../openapi/util/create-request-schema.js';
-import { createResponseSchema } from '../../openapi/util/create-response-schema.js';
+import {
+    createResponseSchema,
+    resourceCreatedResponseSchema,
+} from '../../openapi/util/create-response-schema.js';
+
+import type { NameSchema } from '../../openapi/spec/name-schema.js';
+import type { CreateEnvironmentSchema } from '../../openapi/spec/create-environment-schema.js';
+
 import {
     environmentsSchema,
     type EnvironmentsSchema,
@@ -171,6 +178,48 @@ export class EnvironmentsController extends Controller {
                 }),
             ],
         });
+
+        this.route({
+            method: 'post',
+            path: '/validate',
+            handler: this.validate,
+            permission: NONE,
+            middleware: [
+                openApiService.validPath({
+                    tags: ['Environments'],
+                    summary: 'Validate an environment name',
+                    description:
+                        'Validates whether the supplied environment name can be created.',
+                    operationId: 'validateEnvironment',
+                    requestBody: createRequestSchema('nameSchema'),
+                    responses: {
+                        204: emptyResponse,
+                        ...getStandardResponses(400, 401, 403, 409, 415),
+                    },
+                }),
+            ],
+        });
+
+        this.route({
+            method: 'post',
+            path: '',
+            handler: this.createEnvironment,
+            permission: ADMIN,
+            middleware: [
+                openApiService.validPath({
+                    tags: ['Environments'],
+                    summary: 'Create an environment',
+                    description:
+                        'Creates a new environment in this Unleash instance.',
+                    operationId: 'createEnvironment',
+                    requestBody: createRequestSchema('createEnvironmentSchema'),
+                    responses: {
+                        201: resourceCreatedResponseSchema('environmentSchema'),
+                        ...getStandardResponses(400, 401, 403, 409, 415),
+                    },
+                }),
+            ],
+        });
     }
 
     async getAllEnvironments(
@@ -182,6 +231,28 @@ export class EnvironmentsController extends Controller {
             res,
             environmentsSchema.$id,
             { version: 1, environments: await this.service.getAll() },
+        );
+    }
+
+        async validate(
+        req: Request<unknown, unknown, NameSchema>,
+        res: Response,
+    ): Promise<void> {
+        await this.service.validateName(req.body.name);
+        res.status(204).end();
+    }
+
+    async createEnvironment(
+        req: Request<unknown, unknown, CreateEnvironmentSchema>,
+        res: Response<EnvironmentSchema>,
+    ): Promise<void> {
+        const environment = await this.service.createEnvironment(req.body);
+        this.openApiService.respondWithValidation(
+            201,
+            res,
+            environmentSchema.$id,
+            environment,
+            { location: `environments/${environment.name}` },
         );
     }
 
