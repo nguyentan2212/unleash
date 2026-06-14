@@ -29,7 +29,6 @@ import { HighlightCell } from 'component/common/Table/cells/HighlightCell/Highli
 import { TextCell } from 'component/common/Table/cells/TextCell/TextCell';
 import type { IEnvironment } from 'interfaces/environments';
 import { useUiFlag } from 'hooks/useUiFlag';
-import { PremiumFeature } from 'component/common/PremiumFeature/PremiumFeature';
 import useUiConfig from 'hooks/api/getters/useUiConfig/useUiConfig';
 
 const StyledAlert = styled(Alert)(({ theme }) => ({
@@ -86,7 +85,8 @@ export const EnvironmentTable = () => {
     const { setToastApiError } = useToast();
     const { environments, mutateEnvironments } = useEnvironments();
     const isFeatureEnabled = useUiFlag('EEA');
-    const { isEnterprise } = useUiConfig();
+    const { isEnterprise, uiConfig } = useUiConfig();
+    const environmentsEnabled = !(uiConfig.isOss ?? true);
     const [globalFilter, setGlobalFilter] = useState('');
 
     const onMoveItem: OnMoveItem = useCallback(
@@ -177,10 +177,12 @@ export const EnvironmentTable = () => {
         <PageHeader title={`Environments (${count})`} actions={headerActions} />
     );
 
-    if (!isFeatureEnabled) {
+    if (!environmentsEnabled) {
         return (
             <PageContent header={header}>
-                <PremiumFeature feature='environments' />
+                <TablePlaceholder>
+                    Environment management is not available in OSS mode.
+                </TablePlaceholder>
             </PageContent>
         );
     }
