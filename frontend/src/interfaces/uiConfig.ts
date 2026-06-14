@@ -35,6 +35,7 @@ export interface IUiConfig {
         | 'internal'
         | 'full';
     maintenanceMode?: boolean;
+    isOss?: boolean;
     frontendApiOrigins?: string[];
     resourceLimits: ResourceLimitsSchema;
     oidcConfiguredThroughEnv?: boolean;
