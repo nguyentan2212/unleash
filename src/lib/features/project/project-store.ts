@@ -136,9 +136,6 @@ class ProjectStore implements IProjectStore {
             .orderBy('name', 'asc');
 
         projects = projects.where(`${TABLE}.archived_at`, null);
-        if (this.isOss) {
-            projects = projects.where('id', 'default');
-        }
 
         const rows = await projects;
         stop();
