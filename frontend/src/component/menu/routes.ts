@@ -312,7 +312,6 @@ export const routes: IRoute[] = [
         component: EnvironmentTable,
         type: 'protected',
         menu: { main: true },
-        enterprise: true,
     },
     {
         path: '/feedback',
