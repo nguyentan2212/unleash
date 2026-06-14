@@ -83,6 +83,12 @@ export const uiConfigSchema = {
             description: 'Whether maintenance mode is currently active or not.',
             example: false,
         },
+        isOss: {
+            type: 'boolean',
+            description:
+                'Whether this instance should behave as an OSS-limited installation.',
+            example: true,
+        },
         resourceLimits: {
             $ref: resourceLimitsSchema.$id,
             description: resourceLimitsSchema.description,
