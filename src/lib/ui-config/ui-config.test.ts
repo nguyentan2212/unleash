@@ -62,6 +62,7 @@ test('should get ui config', async () => {
     expect(body.resourceLimits!.strategySegments).toEqual(
         DEFAULT_STRATEGY_SEGMENTS_LIMIT,
     );
+    expect(body.isOss).toBe(false);
     expect(body.edgeUrl).toEqual('https://yourcompany.edge.getunleash.io');
     expect(body.impactMetrics).toBe('disabled');
 });
